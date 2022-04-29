@@ -66,6 +66,28 @@ void DacConfig(void)
 	DAC1->CR = (DAC->CR & ~DAC_CR_EN1_Msk) | (0x1 << DAC_CR_EN1_Pos);
 }
 
+void PinConfig(void)
+{
+	// Enable GPIO-E clock
+	RCC->AHB1ENR = (RCC->AHB1ENR & ~RCC_AHB1ENR_GPIOEEN_Msk) | (0x1 << RCC_AHB1ENR_GPIOEEN_Pos);
+}
+
+void updatePinState(int pin, int state)
+{
+	// The state parameter will be used as a boolean (logic high, logic low) so simply convert it into a hex value
+	int newState = state == 1 ? 0x1 : 0x0;
+	switch(pin)
+	{
+		case 1: GPIOE->PUPDR = (GPIOE->PUPDR & ~GPIO_PUPDR_PUPD10_Msk) | (newState << GPIO_PUPDR_PUPD10_Pos); break;
+		case 2: GPIOE->PUPDR = (GPIOE->PUPDR & ~GPIO_PUPDR_PUPD11_Msk) | (newState << GPIO_PUPDR_PUPD11_Pos); break;
+		case 3: GPIOE->PUPDR = (GPIOE->PUPDR & ~GPIO_PUPDR_PUPD12_Msk) | (newState << GPIO_PUPDR_PUPD12_Pos); break;
+		case 4: GPIOE->PUPDR = (GPIOE->PUPDR & ~GPIO_PUPDR_PUPD13_Msk) | (newState << GPIO_PUPDR_PUPD13_Pos); break;
+		case 5: GPIOE->PUPDR = (GPIOE->PUPDR & ~GPIO_PUPDR_PUPD14_Msk) | (newState << GPIO_PUPDR_PUPD14_Pos); break;
+		case 6: GPIOE->PUPDR = (GPIOE->PUPDR & ~GPIO_PUPDR_PUPD15_Msk) | (newState << GPIO_PUPDR_PUPD15_Pos); break;
+		default: break;
+	}
+}
+
 int main(void)
 {
 	// Initialise board
