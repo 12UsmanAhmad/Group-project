@@ -1,6 +1,6 @@
 #include "multimeter.h"
 #include "Board_LED.h"
-#include "M:\Year 2\Design construction and test\Group-project-main\PB_LCD_Drivers.h"
+#include "./PB_LCD_Drivers.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -74,6 +74,22 @@ void PinConfig(void)
 	RCC->AHB1ENR = (RCC->AHB1ENR & ~RCC_AHB1ENR_GPIOEEN_Msk) | (0x1 << RCC_AHB1ENR_GPIOEEN_Pos);
 }
 
+void InpConfig(void)
+{
+	// Enable GPIO-A clock
+	RCC->AHB1ENR = (RCC->AHB1ENR & ~RCC_AHB1ENR_GPIOAEN_Msk) | (0x1 << RCC_AHB1ENR_GPIOAEN_Pos);
+	// Set port 0 mode to input
+	GPIOA->MODER = (GPIOA->MODER & ~GPIO_MODER_MODER0_Msk) | (0x0 << GPIO_MODER_MODER0_Pos);
+	// Set port 0 to pull-down mode
+	GPIOA->PUPDR = (GPIOA->PUPDR & ~GPIO_PUPDR_PUPD0_Msk) | (0x2 << GPIO_PUPDR_PUPD0_Pos);
+}
+
+int isButtonPressed()
+{
+	// Read from the Input Data Register at pin number 0 (0x0)
+	return (GPIOA->IDR & 0x0) != 0;
+}
+
 void updatePinState(int pin, int state)
 {
 	// The state parameter will be used as a boolean (logic high, logic low) so simply convert it into a hex value
@@ -115,15 +131,13 @@ double getVoltage(int scale)
 		// Write to LCD
 		PB_LCD_WriteString(FinalText, (int) strlen(FinalText));
 	}
-	
-	return -1.0;
 }
 
 double getVoltage10(void)
 {
 	// Declare internal variables to store readings
 	uint32_t AdcValue;
-	double AdcFinal;
+	double AdcFinal = -1.0; // initialize with error value
 	bool finished = false;
 
 	// Starts conversion of 'standard' channels
@@ -169,10 +183,11 @@ void setup()
 	PB_LCD_Init();
 	PB_LCD_Clear();	
 
-	// Initialise ADC
+	// Configure
 	AdcConfig();
 	DacConfig();
 	PinConfig();
+	InpConfig();
 	
 	// Write 1.5V to DAC1 at pin PA4
 	DAC1->DHR12R1 = (DAC1->DHR12R1 & ~DAC_DHR12R1_DACC1DHR_Msk) | (/* 1.5 volts */ 0x73B << DAC_DHR12R1_DACC1DHR_Pos);
